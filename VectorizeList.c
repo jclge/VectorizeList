@@ -1,6 +1,6 @@
 /*
  ╔════════╦═══════════════════════╦════════╗
- ║        ║      AI MANAGER       ║        ║
+ ║        ║     VectorizeList     ║        ║
  ║   ___  ╚═══════════════════════╝  ___   ║
  ║  (o o)                           (o o)  ║
  ║ (  V  )  Julien Calenge © 2023  (  V  ) ║
@@ -26,67 +26,71 @@ static void reverse(struct node **head_ref)
     struct node *prev = NULL;
     struct node *current = *head_ref;
     struct node *next = NULL;
+
     while (current != NULL) {
         next = current->next;
-
         current->next = prev;
-
         prev = current;
         current = next;
     }
     *head_ref = prev;
 }
 
+void setup_values(struct node *head, struct node *data)
+{
+    head->occ = data->occ;
+    head->value = data->value;
+}
+
+struct node *setup_node(int value)
+{
+    struct node *head = malloc(sizeof(struct node));
+    head->occ = value;
+    head->next = NULL;
+    return (head);
+}
+
 struct node *partition(struct node *first, struct node *last)
 {
     struct node *pivot = first;
     struct node *front = first;
-    int temp = 0;
-    const char *tmp;
+    struct node *data = setup_node(0);
 
     while (front != NULL && front != last) {
         if (front->occ < last->occ) {
             pivot = first;
-            temp = first->occ;
-            tmp = first->value;
-            first->occ = front->occ;
-            first->value = front->value;
-            front->occ = temp;
-            front->value = tmp;
+            setup_values(data, first);
+            setup_values(first, front);
+            setup_values(first, data);
             first = first->next;
         }
         front = front->next;
     }
-    temp = first->occ;
-    tmp = first->value;
-    first->occ = last->occ;
-    first->value = last->value;
-    last->occ = temp;
-    last->value = tmp;
+    setup_values(data, first);
+    setup_values(first, last);
+    setup_values(last, data);
     return pivot;
 }
 
 void quick_sort(struct node *first, struct node *last)
 {
-    if (first == last) {
+    if (first == last)
         return;
-    }
-    struct node *pivot = partition(first, last);
-    if (pivot != NULL && pivot->next != NULL) {
-        quick_sort(pivot->next, last);
-    }
 
-    if (pivot != NULL && first != pivot) {
+    struct node *pivot = partition(first, last);
+
+    if (pivot != NULL && pivot->next != NULL)
+        quick_sort(pivot->next, last);
+    if (pivot != NULL && first != pivot)
         quick_sort(first, pivot);
-    }
 }
 
 void fill_linked_list(struct node **head, const char *value)
 {
     struct node *current = *(head);
 
-    for (;current->next != NULL && strcmp(value, current->value) != 0; current = current->next);
-    if (current->next == NULL) {
+    for (;strcmp(value, current->value) != 0 && current->next != NULL; current = current->next);
+    if (current->next == NULL && strcmp(value, current->value) != 0) {
         current->next = malloc(sizeof(struct node));
         current = current->next;
         current->value = value;
@@ -130,9 +134,10 @@ struct objects *setup_env(PyObject *args, PyObject *kwargs)
     env->iter = PyObject_GetIter(env->obj);
     env->next = PyIter_Next(env->iter);
     env->head = malloc(sizeof(struct node));
-    env->head->value = "";
-    env->head->occ = 0;
+    env->head->value = PyUnicode_AsUTF8(env->next);
+    env->head->occ = 1;
     env->head->next = NULL;
+    env->next = PyIter_Next(env->iter);
     return (env);
 }
 
@@ -162,13 +167,13 @@ void resolve_keywords(struct objects *env)
 
 void fill_list(struct objects *env, int len)
 {
-    int k;
+    unsigned int k;
     struct node *tmp = env->head;
 
     env->iter = PyObject_GetIter(env->obj);
     env->next = PyIter_Next(env->iter);
-    for (int j = 0; j != len; j++) {
-        for (k = 0; PyUnicode_AsUTF8(env->next) != tmp->value; tmp = tmp->next)
+    for (int j = 0; j != len + 1; j++) {
+        for (k = 0; strcmp(PyUnicode_AsUTF8(env->next), tmp->value) != 0; tmp = tmp->next)
             k++;
         PyList_Append(env->my_list, PyLong_FromLong(k));
         env->next = PyIter_Next(env->iter);

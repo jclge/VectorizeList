@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 setup(name='VectorizeList',
-      version='1.1.0',
+      version='1.2.0',
       ext_modules = [Extension('VectorizeList', sources=['VectorizeList.c'], include_dirs=['.'])],
       license="GNU3",
       description="Vectorize a list of strings into ints",

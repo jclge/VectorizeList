@@ -176,7 +176,7 @@ void fill_list(struct objects *env, int len)
     }
 }
 
-static PyObject *compute(PyObject *self, PyObject *args, PyObject *kwargs)
+static PyObject *compute_list(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     if (error_management(args) == 0)
         return NULL;
@@ -194,7 +194,7 @@ static PyObject *compute(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 
 static PyMethodDef myMethods[] = {
-    { "compute", compute, METH_VARARGS | METH_KEYWORDS, "Takes a list of strings and transform it into integers" },
+    { "compute_list", compute_list, METH_VARARGS | METH_KEYWORDS, "Takes a list of strings and transform it into integers" },
     { NULL, NULL, 0, NULL }
 };
 
